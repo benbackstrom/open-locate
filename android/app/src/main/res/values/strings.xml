@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">OpenLocate</string>
+    <string name="ok">OK</string>
+    <string name="permissions_error">Permissions Error</string>
+    <string name="location_error">Location Error</string>
+    <string name="permissions_error_message">You must enable location permissions in order to use this feature. Please enable location access and try again.</string>
+    <string name="no_url_title">No Login</string>
+    <string name="no_url_message">You must log in successfully before you can add points to the database.</string>
+    <string name="no_points_message">No points found</string>
+    <string name="location_connection_error">Error: could not retrieve the last location of the device.</string>
+    <string name="location_error_message">No location data was found. You may need to turn on Location in your device settings.</string>
+    <string name="image_zoom_issue">Error loading image</string>
+    <string name="image">Image</string>
+    <string name="success">Success!</string>
+
+    <string name="no_connection_error_message">Connection error: make sure server is running and device has a network connection.</string>
+    <string name="network_error_message">Network error: make sure your device has an active network connection.</string>
+    <string name="authentication_error_message">Authentication error: try entering your username and password again.</string>
+    <string name="timeout_error_message">Timeout error: server took too long to respond.</string>
+    <string name="server_error_message">Server error: oops, something went wrong on the server.</string>
+</resources>
