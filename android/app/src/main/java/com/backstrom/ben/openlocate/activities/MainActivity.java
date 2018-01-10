@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -33,6 +34,7 @@ import com.backstrom.ben.openlocate.adapters.PointsAdapter;
 import com.backstrom.ben.openlocate.model.Point;
 import com.backstrom.ben.openlocate.requests.AddPointRequest;
 import com.backstrom.ben.openlocate.requests.AuthRequest;
+import com.backstrom.ben.openlocate.requests.RemovePointRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements ConvertPointsTask
         mProgress = (FrameLayout) findViewById(R.id.progress_bar);
 
         mAdapter = new PointsAdapter(this, new ArrayList<Point>());
+        setSwipeListener(mRecyclerView);
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(mAdapter);
@@ -141,46 +144,7 @@ public class MainActivity extends AppCompatActivity implements ConvertPointsTask
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.i(TAG, "------------------------error");
-                        if (error != null) {
-                            error.printStackTrace();
-                            if (error instanceof NoConnectionError) {
-                                Toast.makeText(MainActivity.this,
-                                        getString(R.string.no_connection_error_message),
-                                        Toast.LENGTH_LONG)
-                                        .show();
-                            } else if (error instanceof NetworkError) {
-                                Toast.makeText(MainActivity.this,
-                                        getString(R.string.network_error_message),
-                                        Toast.LENGTH_LONG)
-                                        .show();
-                            } else if (error instanceof AuthFailureError) {
-                                Toast.makeText(MainActivity.this,
-                                        getString(R.string.authentication_error_message),
-                                        Toast.LENGTH_LONG)
-                                        .show();
-                            } else if (error instanceof TimeoutError) {
-                                Toast.makeText(MainActivity.this,
-                                        getString(R.string.timeout_error_message),
-                                        Toast.LENGTH_LONG)
-                                        .show();
-                            } else if (error instanceof ServerError) {
-                                Toast.makeText(MainActivity.this,
-                                        getString(R.string.server_error_message),
-                                        Toast.LENGTH_LONG)
-                                        .show();
-                            } else {
-                                if (error.networkResponse != null) {
-                                    String errorMessage = error.networkResponse.toString();
-                                    if (errorMessage != null) {
-                                        Toast.makeText(MainActivity.this,
-                                                errorMessage,
-                                                Toast.LENGTH_LONG)
-                                                .show();
-                                    }
-                                }
-                            }
-                        }
+                        logError(error);
                         MainActivity.this.onPointsReceived(new ArrayList<Point>());
                         hideProgress();
                     }
@@ -192,6 +156,25 @@ public class MainActivity extends AppCompatActivity implements ConvertPointsTask
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         queue.add(request);
+    }
+
+    private void setSwipeListener(RecyclerView recyclerView) {
+        ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+            @Override
+            public boolean onMove(RecyclerView recyclerView,
+                                  RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                int position = viewHolder.getAdapterPosition();
+                removeItem(position);
+            }
+        };
+        ItemTouchHelper helper = new ItemTouchHelper(simpleItemTouchCallback);
+        helper.attachToRecyclerView(recyclerView);
     }
 
     public void showProgress() {
@@ -211,5 +194,87 @@ public class MainActivity extends AppCompatActivity implements ConvertPointsTask
         }
         mAdapter.swapList(results);
         hideProgress();
+    }
+
+    private void removeItem(int position) {
+        List<Point> points = mAdapter.getDataSet();
+        Point toRemove = points.remove(position);
+        mAdapter.notifyItemRemoved(position);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String baseUrl = prefs.getString(URL_KEY, null);
+        String username = prefs.getString(USERNAME_KEY, null);
+        String password = prefs.getString(PASSWORD_KEY, null);
+
+        String url = baseUrl + "/remove-point";
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        RemovePointRequest request = new RemovePointRequest(
+                url,
+                username,
+                password,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Toast.makeText(MainActivity.this,
+                                "Item Deleted",
+                                Toast.LENGTH_SHORT)
+                                    .show();
+                        refreshList();
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        logError(error);
+                    }
+                },
+                toRemove
+        );
+        queue.add(request);
+    }
+
+    public void logError(VolleyError error) {
+        Log.i(TAG, "------------------------error");
+        if (error != null) {
+            error.printStackTrace();
+            if (error instanceof NoConnectionError) {
+                Toast.makeText(MainActivity.this,
+                        getString(R.string.no_connection_error_message),
+                        Toast.LENGTH_LONG)
+                        .show();
+            } else if (error instanceof NetworkError) {
+                Toast.makeText(MainActivity.this,
+                        getString(R.string.network_error_message),
+                        Toast.LENGTH_LONG)
+                        .show();
+            } else if (error instanceof AuthFailureError) {
+                Toast.makeText(MainActivity.this,
+                        getString(R.string.authentication_error_message),
+                        Toast.LENGTH_LONG)
+                        .show();
+            } else if (error instanceof TimeoutError) {
+                Toast.makeText(MainActivity.this,
+                        getString(R.string.timeout_error_message),
+                        Toast.LENGTH_LONG)
+                        .show();
+            } else if (error instanceof ServerError) {
+                Toast.makeText(MainActivity.this,
+                        getString(R.string.server_error_message),
+                        Toast.LENGTH_LONG)
+                        .show();
+            } else {
+                if (error.networkResponse != null) {
+                    String errorMessage = error.networkResponse.toString();
+                    if (errorMessage != null) {
+                        Toast.makeText(MainActivity.this,
+                                errorMessage,
+                                Toast.LENGTH_LONG)
+                                .show();
+                    }
+                }
+            }
+        }
     }
 }

@@ -136,13 +136,18 @@ app.get('/test-get-points', (req, res) => {
     data.respondWithPoints(req, res);
 });
 
-app.get('/test-remove-point', (req, res) => {
-    // if (req.body.id) {
-        let id = 1494993147300;
-        data.removePointAtId(id, () => {
-            res.send('OK!');
-        });
-    // }
+
+/*
+ * Remove a point with a given id in the database.
+ */
+app.post('/remove-point', (req, res) => {
+    data.authenticateAndRun(req, res, (res) => {
+        if (req.body.id) {
+            data.removePointAtId(req.body.id, () => {
+                res.send('OK!');
+            });
+        }
+    });
 });
 
 /*
@@ -230,17 +235,6 @@ app.post('/get-points', (req, res) => {
     data.authenticateAndRun(req, res, (res) => {
         console.log("---/get-points callback");
         data.respondWithPoints(req, res);
-    });
-});
-
-/*
- * Remove a point with given id from the database and remove image files
- */
-app.get('/remove-point', (req, res) => {
-    data.authenticateAndRun(req, res, (res) => {
-        data.removePointAtId(req.body.id, () => {
-            res.send('OK!');
-        });
     });
 });
 

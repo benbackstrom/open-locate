@@ -112,6 +112,10 @@ public class PointsAdapter extends RecyclerView.Adapter<PointsAdapter.ViewHolder
         return mDataset.size();
     }
 
+    public List<Point> getDataSet() {
+        return mDataset;
+    }
+
     public void swapList(List<Point> input) {
         mDataset = input;
         notifyDataSetChanged();
@@ -119,6 +123,7 @@ public class PointsAdapter extends RecyclerView.Adapter<PointsAdapter.ViewHolder
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
+        public View root;
         public ImageView mapView;
         public TextView pointName;
         public TextView timeDate;
@@ -129,6 +134,7 @@ public class PointsAdapter extends RecyclerView.Adapter<PointsAdapter.ViewHolder
 
         public ViewHolder(View v) {
             super(v);
+            root = v;
             mapView = (ImageView) v.findViewById(R.id.map_view);
             pointName = (TextView) v.findViewById(R.id.point_name);
             timeDate = (TextView) v.findViewById(R.id.date_time);
