@@ -70,40 +70,13 @@ public class PointsAdapter extends RecyclerView.Adapter<PointsAdapter.ViewHolder
         }
         holder.pointName.setText(point.name);
         holder.timeDate.setText(DateFormatUtil.getFormattedDate(point.timestamp));
-        holder.latLng.setText(point.latLng.latitude + ", " + point.latLng.longitude);
 
-        if (point.notes != null && point.notes.length() > 0) {
-            holder.notes.setText(point.notes);
-            holder.notesContainer.setVisibility(View.VISIBLE);
-        } else {
-            holder.notesContainer.setVisibility(View.GONE);
-        }
+        holder.root.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
-        if (point.attachment != null) {
-            holder.attachment.setVisibility(View.VISIBLE);
-            holder.attachment.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    ImageZoomActivity.setBitmap(point.attachment);
-                    Intent intent = new Intent(holder.attachment.getContext(), ImageZoomActivity.class);
-                    intent.putExtra(NAME_KEY, point.name);
-                    holder.attachment.getContext().startActivity(intent);
-                }
-            });
-        } else if (point.attachmentUri != null) {
-            holder.attachment.setVisibility(View.VISIBLE);
-            holder.attachment.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(holder.attachment.getContext(), ImageZoomActivity.class);
-                    intent.putExtra(NAME_KEY, point.name);
-                    intent.putExtra(IMAGE_URL_KEY, point.attachmentUri);
-                    holder.attachment.getContext().startActivity(intent);
-                }
-            });
-        } else {
-            holder.attachment.setVisibility(View.GONE);
-        }
+            }
+        });
     }
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -127,10 +100,6 @@ public class PointsAdapter extends RecyclerView.Adapter<PointsAdapter.ViewHolder
         public ImageView mapView;
         public TextView pointName;
         public TextView timeDate;
-        public TextView latLng;
-        public LinearLayout notesContainer;
-        public TextView notes;
-        public LinearLayout attachment;
 
         public ViewHolder(View v) {
             super(v);
@@ -138,10 +107,6 @@ public class PointsAdapter extends RecyclerView.Adapter<PointsAdapter.ViewHolder
             mapView = (ImageView) v.findViewById(R.id.map_view);
             pointName = (TextView) v.findViewById(R.id.point_name);
             timeDate = (TextView) v.findViewById(R.id.date_time);
-            latLng = (TextView) v.findViewById(R.id.lat_lng);
-            notesContainer = (LinearLayout) v.findViewById(R.id.notes_container);
-            notes = (TextView) v.findViewById(R.id.notes_text);
-            attachment = (LinearLayout) v.findViewById(R.id.image_container);
         }
     }
 }
