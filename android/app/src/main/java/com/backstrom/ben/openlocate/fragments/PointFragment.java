@@ -3,6 +3,7 @@ package com.backstrom.ben.openlocate.fragments;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -17,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.backstrom.ben.openlocate.R;
+import com.backstrom.ben.openlocate.activities.ImageZoomActivity;
 import com.backstrom.ben.openlocate.model.Point;
 import com.backstrom.ben.openlocate.util.DateFormatUtil;
 import com.google.android.gms.maps.model.LatLng;
@@ -105,6 +107,13 @@ public class PointFragment extends Fragment {
         mDateView.setText(date);
         mLatLngView.setText(mPoint.latLng.toString());
         mNotesView.setText(mPoint.notes);
+
+        mImageView.setOnClickListener((View view) -> {
+            Intent intent = new Intent(getContext(), ImageZoomActivity.class);
+            intent.putExtra(Point.NAME_KEY, mPoint.name);
+            intent.putExtra(Point.ATTACHMENT_KEY, mPoint.attachmentUri);
+            getContext().startActivity(intent);
+        });
 
         return root;
     }

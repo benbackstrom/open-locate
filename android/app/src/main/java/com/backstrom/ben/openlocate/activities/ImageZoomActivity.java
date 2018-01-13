@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import com.backstrom.ben.openlocate.R;
 import com.backstrom.ben.openlocate.adapters.PointsAdapter;
+import com.backstrom.ben.openlocate.model.Point;
 import com.squareup.picasso.Picasso;
 
 import it.sephiroth.android.library.imagezoom.ImageViewTouch;
@@ -24,8 +25,6 @@ public class ImageZoomActivity extends AppCompatActivity {
 
     private View mBack;
 
-    private static Bitmap mBitmap;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,42 +33,19 @@ public class ImageZoomActivity extends AppCompatActivity {
         mBack = findViewById(R.id.back);
         ImageViewTouch imageView = (ImageViewTouch) findViewById(R.id.image_view);
 
-        mBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-            }
-        });
+        mBack.setOnClickListener((View view) ->
+                finish());
 
-        String url = getIntent().getExtras().getString(PointsAdapter.IMAGE_URL_KEY);
+        String url = getIntent().getExtras().getString(Point.ATTACHMENT_KEY);
 
-        if (mBitmap != null) {
-            imageView.setImageBitmap(mBitmap);
-        } else if (url != null) {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            String baseUrl = prefs.getString(URL_KEY, null);
-            if (baseUrl != null) {
-                String temp = url.substring(6, url.length());
-                String imageUrl = baseUrl + temp;
-
-                Picasso.with(this)
-                        .load(imageUrl)
-                        .into(imageView);
-            }
+        if (url != null) {
+            Picasso.with(this)
+                    .load(url)
+                    .into(imageView);
         } else {
             Toast.makeText(this,
                     getString(R.string.image_zoom_issue),
                     Toast.LENGTH_LONG).show();
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        mBitmap = null;
-        super.onDestroy();
-    }
-
-    public static void setBitmap(Bitmap bitmap) {
-        mBitmap = bitmap;
     }
 }

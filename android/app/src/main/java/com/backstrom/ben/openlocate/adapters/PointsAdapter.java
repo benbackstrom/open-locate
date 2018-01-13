@@ -2,28 +2,21 @@ package com.backstrom.ben.openlocate.adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.backstrom.ben.openlocate.R;
-import com.backstrom.ben.openlocate.activities.ImageZoomActivity;
 import com.backstrom.ben.openlocate.activities.PointActivity;
 import com.backstrom.ben.openlocate.model.Point;
 import com.backstrom.ben.openlocate.util.DateFormatUtil;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
-
-import static com.backstrom.ben.openlocate.requests.AuthRequest.URL_KEY;
 
 /**
  * Created by benba on 3/13/2017.
@@ -32,8 +25,6 @@ import static com.backstrom.ben.openlocate.requests.AuthRequest.URL_KEY;
 public class PointsAdapter extends RecyclerView.Adapter<PointsAdapter.ViewHolder> {
 
     private static final String TAG = PointsAdapter.class.getSimpleName();
-    public static final String NAME_KEY = "ID_KEY";
-    public static final String IMAGE_URL_KEY = "IMAGE_URL_KEY";
     private List<Point> mDataset;
     private Context mContext;
 
