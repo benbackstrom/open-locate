@@ -1,18 +1,26 @@
 package com.backstrom.ben.openlocate.fragments;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.backstrom.ben.openlocate.R;
 import com.backstrom.ben.openlocate.model.Point;
 import com.backstrom.ben.openlocate.util.DateFormatUtil;
 import com.google.android.gms.maps.model.LatLng;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -21,6 +29,8 @@ import com.squareup.picasso.Picasso;
 
 public class PointFragment extends Fragment {
 
+    private ScrollView mScrollView;
+    private ProgressBar mProgressBar;
     private View mBack;
     private TextView mTitleView;
     private ImageView mMapView;
@@ -43,6 +53,8 @@ public class PointFragment extends Fragment {
 
         createPoint();
 
+        mScrollView = (ScrollView) root.findViewById(R.id.scroll_view);
+        mProgressBar = (ProgressBar) root.findViewById(R.id.progress_bar);
         mBack = root.findViewById(R.id.back);
         mTitleView = (TextView) root.findViewById(R.id.title_view);
         mMapView = (ImageView) root.findViewById(R.id.map_view);
@@ -50,6 +62,8 @@ public class PointFragment extends Fragment {
         mDateView = (TextView) root.findViewById(R.id.date_time_text);
         mLatLngView = (TextView) root.findViewById(R.id.lat_lng_text);
         mNotesView = (TextView) root.findViewById(R.id.notes);
+
+        mScrollView.setVisibility(View.INVISIBLE);
 
         mMapView.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -67,7 +81,21 @@ public class PointFragment extends Fragment {
                          .load(mPoint.attachmentUri)
                          .resize(width, width)
                          .centerCrop()
-                         .into(mImageView);
+                         .into(mImageView, new Callback() {
+                             @Override
+                             public void onSuccess() {
+                                 animateToVisible();
+                             }
+
+                             @Override
+                             public void onError() {
+                                 Toast.makeText(getContext(),
+                                         "There was an error loading the image for this point.",
+                                         Toast.LENGTH_SHORT)
+                                         .show();
+                                 animateToVisible();
+                             }
+                         });
              }
         });
 
@@ -94,5 +122,34 @@ public class PointFragment extends Fragment {
         LatLng latLng = new LatLng(lat, lng);
 
         mPoint = new Point(id, mapUri, name, timestamp, latLng, notes, attachmentUri);
+    }
+
+    private void animateToVisible() {
+        ValueAnimator animator = ValueAnimator.ofFloat(0, 1);
+        animator.setDuration(400);
+        animator.setInterpolator(new AccelerateDecelerateInterpolator());
+        animator.addUpdateListener((ValueAnimator valueAnimator) ->
+            mScrollView.setAlpha(valueAnimator.getAnimatedFraction()));
+
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+                mProgressBar.setVisibility(View.GONE);
+                mScrollView.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {}
+
+            @Override
+            public void onAnimationCancel(Animator animator) {}
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {}
+        });
+
+        AnimatorSet set = new AnimatorSet();
+        set.play(animator);
+        set.start();
     }
 }
