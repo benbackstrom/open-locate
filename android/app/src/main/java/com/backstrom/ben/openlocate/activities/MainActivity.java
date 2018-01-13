@@ -136,7 +136,11 @@ public class MainActivity extends AppCompatActivity implements ConvertPointsTask
                                 mTask.cancel(true);
                                 mTask = null;
                             }
-                            mTask = new ConvertPointsTask(MainActivity.this);
+
+                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                            String baseUrl = prefs.getString(URL_KEY, null);
+
+                            mTask = new ConvertPointsTask(baseUrl, MainActivity.this);
                             mTask.execute(response);
                         }
                     }

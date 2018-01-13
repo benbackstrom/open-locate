@@ -1,9 +1,11 @@
 package com.backstrom.ben.openlocate;
 
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.BaseBundle;
+import android.preference.PreferenceManager;
 import android.util.Base64;
 
 import com.backstrom.ben.openlocate.model.Point;
@@ -16,16 +18,19 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.backstrom.ben.openlocate.requests.AuthRequest.URL_KEY;
+
 /**
  * Created by benba on 5/20/2017.
  */
 
 public class ConvertPointsTask extends AsyncTask<String, Void, List<Point>> {
 
-
+    private String mBaseUrl;
     private Listener mListener;
 
-    public ConvertPointsTask(Listener listener) {
+    public ConvertPointsTask(String baseUrl, Listener listener) {
+        mBaseUrl = baseUrl;
         mListener = listener;
     }
 
@@ -47,6 +52,14 @@ public class ConvertPointsTask extends AsyncTask<String, Void, List<Point>> {
                 String notes = object.optString("notes");
                 String mapUri = object.getString("mapUri");
                 String imageUri = object.getString("imageUri");
+
+                if (mBaseUrl != null) {
+                    String tempMap = mapUri.substring(6, mapUri.length());
+                    mapUri = mBaseUrl + tempMap;
+
+                    String tempImage = imageUri.substring(6, imageUri.length());
+                    imageUri = mBaseUrl + tempImage;
+                }
 
                 Point point = new Point(
                         id, mapUri, name, timestamp, new LatLng(latitude, longitude), notes, imageUri

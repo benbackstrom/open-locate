@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.backstrom.ben.openlocate.R;
 import com.backstrom.ben.openlocate.activities.ImageZoomActivity;
+import com.backstrom.ben.openlocate.activities.PointActivity;
 import com.backstrom.ben.openlocate.model.Point;
 import com.backstrom.ben.openlocate.util.DateFormatUtil;
 import com.squareup.picasso.Picasso;
@@ -54,28 +55,27 @@ public class PointsAdapter extends RecyclerView.Adapter<PointsAdapter.ViewHolder
     public void onBindViewHolder(final ViewHolder holder, int position) {
         final Point point = mDataset.get(position);
 
-        if (point.map != null) {
-            holder.mapView.setImageBitmap(point.map);
-        } else if (point.mapUri != null) {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
-            String baseUrl = prefs.getString(URL_KEY, null);
-            if (baseUrl != null) {
-                String temp = point.mapUri.substring(6, point.mapUri.length());
-                String url = baseUrl + temp;
+        Picasso.with(mContext)
+                .load(point.mapUri)
+                .into(holder.mapView);
 
-                Picasso.with(mContext)
-                        .load(url)
-                        .into(holder.mapView);
-            }
-        }
         holder.pointName.setText(point.name);
         holder.timeDate.setText(DateFormatUtil.getFormattedDate(point.timestamp));
 
-        holder.root.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        holder.root.setOnClickListener((View view) -> {
+            Bundle args = new Bundle();
+            args.putLong(Point.ID, point.id);
+            args.putString(Point.NAME_KEY, point.name);
+            args.putString(Point.MAP_KEY, point.mapUri);
+            args.putString(Point.ATTACHMENT_KEY, point.attachmentUri);
+            args.putLong(Point.TIMESTAMP_KEY, point.timestamp);
+            args.putDouble(Point.LAT_KEY, point.latLng.latitude);
+            args.putDouble(Point.LNG_KEY, point.latLng.longitude);
+            args.putString(Point.NOTES_KEY, point.notes);
 
-            }
+            Intent intent = new Intent(mContext, PointActivity.class);
+            intent.putExtras(args);
+            mContext.startActivity(intent);
         });
     }
 

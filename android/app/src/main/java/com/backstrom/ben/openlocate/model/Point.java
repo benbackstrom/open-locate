@@ -41,13 +41,22 @@ public class Point {
         this.attachment = attachment;
     }
 
-    public Point(long id, String mapUri, String name, long timestamp, LatLng latLng, String people, String attachmentUri) {
+    public Point(long id, String mapUri, String name, long timestamp, LatLng latLng, String notes, String attachmentUri) {
         this.id = id;
         this.mapUri = mapUri;
         this.name = name;
         this.timestamp = timestamp;
         this.latLng = latLng;
-        this.notes = people;
+        this.notes = notes;
         this.attachmentUri = attachmentUri;
+    }
+
+    @Override
+    public String toString() {
+        return "Point: "+ID+"="+id+", "+
+                TIMESTAMP_KEY+"="+timestamp+", "+
+                LAT_LNG_KEY+"="+latLng+", "+
+                ATTACHMENT_KEY+"="+attachmentUri+", "+
+                NOTES_KEY+"="+notes;
     }
 }
