@@ -3,6 +3,7 @@ package com.backstrom.ben.openlocate.fragments;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import android.widget.Toast;
 import com.backstrom.ben.openlocate.R;
 import com.backstrom.ben.openlocate.activities.ImageZoomActivity;
 import com.backstrom.ben.openlocate.model.Point;
+import com.backstrom.ben.openlocate.model.PointViewModel;
 import com.backstrom.ben.openlocate.util.DateFormatUtil;
 import com.backstrom.ben.openlocate.util.DpUtils;
 import com.google.android.gms.maps.model.LatLng;
@@ -53,15 +55,16 @@ public class PointFragment extends Fragment {
     public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_point, null);
 
-        createPoint();
+        PointViewModel model = ViewModelProviders.of(this).get(PointViewModel.class);
+        mPoint = model.getPoint(getArguments());
 
-        mScrollView = (ScrollView) root.findViewById(R.id.scroll_view);
-        mProgressBar = (ProgressBar) root.findViewById(R.id.progress_bar);
-        mMapView = (ImageView) root.findViewById(R.id.map_view);
-        mImageView = (ImageView) root.findViewById(R.id.image_view);
-        mDateView = (TextView) root.findViewById(R.id.date_time_text);
-        mLatLngView = (TextView) root.findViewById(R.id.lat_lng_text);
-        mNotesView = (TextView) root.findViewById(R.id.notes);
+        mScrollView = root.findViewById(R.id.scroll_view);
+        mProgressBar = root.findViewById(R.id.progress_bar);
+        mMapView = root.findViewById(R.id.map_view);
+        mImageView = root.findViewById(R.id.image_view);
+        mDateView = root.findViewById(R.id.date_time_text);
+        mLatLngView = root.findViewById(R.id.lat_lng_text);
+        mNotesView = root.findViewById(R.id.notes);
 
         mScrollView.setVisibility(View.INVISIBLE);
 
@@ -87,21 +90,6 @@ public class PointFragment extends Fragment {
         });
 
         return root;
-    }
-
-    private void createPoint() {
-        Bundle args = getArguments();
-        long id = args.getLong(Point.ID, -1);
-        String name = args.getString(Point.NAME_KEY);
-        String mapUri = args.getString(Point.MAP_KEY);
-        String attachmentUri = args.getString(Point.ATTACHMENT_KEY);
-        long timestamp = args.getLong(Point.TIMESTAMP_KEY, -1);
-        double lat = args.getDouble(Point.LAT_KEY);
-        double lng = args.getDouble(Point.LNG_KEY);
-        String notes = args.getString(Point.NOTES_KEY, null);
-        LatLng latLng = new LatLng(lat, lng);
-
-        mPoint = new Point(id, mapUri, name, timestamp, latLng, notes, attachmentUri);
     }
 
     private void animateToVisible() {
