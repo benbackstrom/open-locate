@@ -1,9 +1,12 @@
 package com.backstrom.ben.openlocate.activities;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -28,12 +31,14 @@ import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
+import com.backstrom.ben.openlocate.model.PointsListViewModel;
 import com.backstrom.ben.openlocate.tasks.ConvertPointsTask;
 import com.backstrom.ben.openlocate.R;
 import com.backstrom.ben.openlocate.adapters.PointsAdapter;
 import com.backstrom.ben.openlocate.model.Point;
 import com.backstrom.ben.openlocate.requests.AuthRequest;
 import com.backstrom.ben.openlocate.requests.RemovePointRequest;
+import com.backstrom.ben.openlocate.util.VolleyErrorUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,119 +59,74 @@ public class MainActivity extends AppCompatActivity implements ConvertPointsTask
     private FrameLayout mEmpty;
     private View mProgress;
 
-    private ConvertPointsTask mTask;
+    private PointsListViewModel mModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mSwipeRefresh = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        mButton = (FloatingActionButton) findViewById(R.id.create_point);
-        mLogin = (FrameLayout) findViewById(R.id.login);
-        mEmpty = (FrameLayout) findViewById(R.id.empty_message);
+        mSwipeRefresh = findViewById(R.id.swipe_refresh);
+        mRecyclerView = findViewById(R.id.recycler_view);
+        mButton = findViewById(R.id.create_point);
+        mLogin = findViewById(R.id.login);
+        mEmpty = findViewById(R.id.empty_message);
         mProgress = findViewById(R.id.progress_bar);
 
-        mSwipeRefresh.setOnRefreshListener(() -> refreshList() );
-
-        mAdapter = new PointsAdapter(this, new ArrayList<Point>());
+        mAdapter = new PointsAdapter(this, new ArrayList<>());
         setSwipeListener(mRecyclerView);
+
+        mModel = ViewModelProviders.of(this).get(PointsListViewModel.class);
+        mModel.getLiveData(getApplicationContext()).observe(
+            this,
+            (@Nullable List<Point> points) -> {
+                if (points != null && points.size() > 0)
+                    mEmpty.setVisibility(View.GONE);
+                else
+                    mEmpty.setVisibility(View.VISIBLE);
+
+                mAdapter.swapList(points);
+                hideProgress();
+            }
+        );
+        showProgress();
+
+        mSwipeRefresh.setOnRefreshListener(() -> mModel.forceRefresh(getApplicationContext()) );
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(mAdapter);
 
-        mButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                String url = prefs.getString(URL_KEY, null);
-                if (url != null) {
-                    Intent intent = new Intent(MainActivity.this, SendActivity.class);
-                    intent.putExtra(URL_KEY, url);
-                    startActivity(intent);
-                    overridePendingTransition(R.anim.slide_in_up, R.anim.no_animation);
-                } else {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setTitle(R.string.no_url_title);
-                    builder.setMessage(R.string.no_url_message);
-                    builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.dismiss();
-                        }
-                    });
-                    builder.show();
-                }
-            }
-        });
-
-        mLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        mButton.setOnClickListener((View view) -> {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+            String url = prefs.getString(URL_KEY, null);
+            if (url != null) {
+                Intent intent = new Intent(MainActivity.this, SendActivity.class);
+                intent.putExtra(URL_KEY, url);
                 startActivity(intent);
-                overridePendingTransition(R.anim.slide_in_left, R.anim.no_animation);
+                overridePendingTransition(R.anim.slide_in_up, R.anim.no_animation);
+            } else {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle(R.string.no_url_title);
+                builder.setMessage(R.string.no_url_message);
+                builder.setPositiveButton(
+                    R.string.ok,
+                    (DialogInterface dialogInterface, int i) ->
+                        dialogInterface.dismiss()
+                );
+                builder.show();
             }
         });
 
-        refreshList();
-    }
-
-    public void refreshList() {
-        mEmpty.setVisibility(View.GONE);
-        showProgress();
-        RequestQueue queue = Volley.newRequestQueue(this);
-
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String baseUrl = prefs.getString(URL_KEY, null);
-        String username = prefs.getString(USERNAME_KEY, null);
-        String password = prefs.getString(PASSWORD_KEY, null);
-
-        String url = baseUrl + "/get-points";
-
-        AuthRequest request = new AuthRequest(Request.Method.POST,
-                url,
-                username,
-                password,
-
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        if (response != null) {
-                            if (mTask != null) {
-                                mTask.cancel(true);
-                                mTask = null;
-                            }
-
-                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                            String baseUrl = prefs.getString(URL_KEY, null);
-
-                            mTask = new ConvertPointsTask(baseUrl, MainActivity.this);
-                            mTask.execute(response);
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        logError(error);
-                        MainActivity.this.onPointsReceived(new ArrayList<Point>());
-                        hideProgress();
-                    }
-                }
-        );
-        request.setRetryPolicy(new DefaultRetryPolicy(
-                3*60*1000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-        queue.add(request);
+        mLogin.setOnClickListener((View view) -> {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            overridePendingTransition(R.anim.slide_in_left, R.anim.no_animation);
+        });
     }
 
     private void setSwipeListener(RecyclerView recyclerView) {
-        ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+        ItemTouchHelper.SimpleCallback simpleItemTouchCallback =
+                new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
 
             @Override
             public boolean onMove(RecyclerView recyclerView,
@@ -223,67 +183,19 @@ public class MainActivity extends AppCompatActivity implements ConvertPointsTask
                 url,
                 username,
                 password,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Toast.makeText(MainActivity.this,
-                                "Item Deleted",
-                                Toast.LENGTH_SHORT)
-                                    .show();
-                        refreshList();
-                    }
+                (String response) -> {
+                    Toast.makeText(MainActivity.this,
+                            "Item Deleted",
+                            Toast.LENGTH_SHORT)
+                                .show();
+                    showProgress();
+                    mModel.forceRefresh(getApplicationContext());
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        logError(error);
-                    }
-                },
+                (VolleyError error) ->
+                    VolleyErrorUtils.logError(MainActivity.this, error)
+                ,
                 toRemove
         );
         queue.add(request);
-    }
-
-    public void logError(VolleyError error) {
-        Log.i(TAG, "------------------------error");
-        if (error != null) {
-            error.printStackTrace();
-            if (error instanceof NoConnectionError) {
-                Toast.makeText(MainActivity.this,
-                        getString(R.string.no_connection_error_message),
-                        Toast.LENGTH_LONG)
-                        .show();
-            } else if (error instanceof NetworkError) {
-                Toast.makeText(MainActivity.this,
-                        getString(R.string.network_error_message),
-                        Toast.LENGTH_LONG)
-                        .show();
-            } else if (error instanceof AuthFailureError) {
-                Toast.makeText(MainActivity.this,
-                        getString(R.string.authentication_error_message),
-                        Toast.LENGTH_LONG)
-                        .show();
-            } else if (error instanceof TimeoutError) {
-                Toast.makeText(MainActivity.this,
-                        getString(R.string.timeout_error_message),
-                        Toast.LENGTH_LONG)
-                        .show();
-            } else if (error instanceof ServerError) {
-                Toast.makeText(MainActivity.this,
-                        getString(R.string.server_error_message),
-                        Toast.LENGTH_LONG)
-                        .show();
-            } else {
-                if (error.networkResponse != null) {
-                    String errorMessage = error.networkResponse.toString();
-                    if (errorMessage != null) {
-                        Toast.makeText(MainActivity.this,
-                                errorMessage,
-                                Toast.LENGTH_LONG)
-                                .show();
-                    }
-                }
-            }
-        }
     }
 }
