@@ -29,7 +29,7 @@ public class PointActivity extends AppCompatActivity {
         if (extras != null)
             title = extras.getString(Point.NAME_KEY, getString(R.string.app_name));
 
-        mTitleView = (TextView) findViewById(R.id.title_view);
+        mTitleView = findViewById(R.id.title_view);
         mBack = findViewById(R.id.back);
 
         mTitleView.setText(title);
