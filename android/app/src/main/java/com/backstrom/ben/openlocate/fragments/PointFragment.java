@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -72,32 +73,7 @@ public class PointFragment extends Fragment {
              @Override
              public void onGlobalLayout() {
                  mMapView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                 int width = mMapView.getMeasuredWidth();
-
-                 Picasso.with(getContext())
-                         .load(mPoint.mapUri)
-                         .resize(width, width)
-                         .centerCrop()
-                         .into(mMapView);
-                 Picasso.with(getContext())
-                         .load(mPoint.attachmentUri)
-                         .resize(width, width)
-                         .centerCrop()
-                         .into(mImageView, new Callback() {
-                             @Override
-                             public void onSuccess() {
-                                 animateToVisible();
-                             }
-
-                             @Override
-                             public void onError() {
-                                 Toast.makeText(getContext(),
-                                         "There was an error loading the image for this point.",
-                                         Toast.LENGTH_SHORT)
-                                         .show();
-                                 animateToVisible();
-                             }
-                         });
+                 loadImages();
              }
         });
 
@@ -160,5 +136,40 @@ public class PointFragment extends Fragment {
         AnimatorSet set = new AnimatorSet();
         set.play(animator);
         set.start();
+    }
+
+    private void loadImages() {
+        int width = 0;
+        int orientation = getContext().getResources().getConfiguration().orientation;
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            width = mMapView.getMeasuredWidth();
+        } else {
+            width = mMapView.getMeasuredHeight();
+        }
+
+        Picasso.with(getContext())
+                .load(mPoint.mapUri)
+                .resize(width, width)
+                .centerCrop()
+                .into(mMapView);
+        Picasso.with(getContext())
+                .load(mPoint.attachmentUri)
+                .resize(width, width)
+                .centerCrop()
+                .into(mImageView, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        animateToVisible();
+                    }
+
+                    @Override
+                    public void onError() {
+                        Toast.makeText(getContext(),
+                                "There was an error loading the image for this point.",
+                                Toast.LENGTH_SHORT)
+                                .show();
+                        animateToVisible();
+                    }
+                });
     }
 }
