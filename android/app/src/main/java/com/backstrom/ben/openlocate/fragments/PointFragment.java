@@ -22,6 +22,7 @@ import com.backstrom.ben.openlocate.R;
 import com.backstrom.ben.openlocate.activities.ImageZoomActivity;
 import com.backstrom.ben.openlocate.model.Point;
 import com.backstrom.ben.openlocate.util.DateFormatUtil;
+import com.backstrom.ben.openlocate.util.DpUtils;
 import com.google.android.gms.maps.model.LatLng;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -34,8 +35,6 @@ public class PointFragment extends Fragment {
 
     private ScrollView mScrollView;
     private ProgressBar mProgressBar;
-    private View mBack;
-    private TextView mTitleView;
     private ImageView mMapView;
     private ImageView mImageView;
     private TextView mDateView;
@@ -58,8 +57,6 @@ public class PointFragment extends Fragment {
 
         mScrollView = (ScrollView) root.findViewById(R.id.scroll_view);
         mProgressBar = (ProgressBar) root.findViewById(R.id.progress_bar);
-        mBack = root.findViewById(R.id.back);
-        mTitleView = (TextView) root.findViewById(R.id.title_view);
         mMapView = (ImageView) root.findViewById(R.id.map_view);
         mImageView = (ImageView) root.findViewById(R.id.image_view);
         mDateView = (TextView) root.findViewById(R.id.date_time_text);
@@ -77,8 +74,6 @@ public class PointFragment extends Fragment {
              }
         });
 
-        mBack.setOnClickListener((View v) -> getActivity().finish());
-        mTitleView.setText(mPoint.name);
         String date = DateFormatUtil.getFormattedDate(mPoint.timestamp);
         mDateView.setText(date);
         mLatLngView.setText(mPoint.latLng.toString());
@@ -144,7 +139,11 @@ public class PointFragment extends Fragment {
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
             width = mMapView.getMeasuredWidth();
         } else {
+            int maxWidth = (int) getContext().getResources().getDimension(R.dimen.image_width);
             width = mMapView.getMeasuredHeight();
+            if (width > maxWidth) {
+                width = maxWidth;
+            }
         }
 
         Picasso.with(getContext())
