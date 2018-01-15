@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -45,12 +46,13 @@ public class MainActivity extends AppCompatActivity implements ConvertPointsTask
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    private SwipeRefreshLayout mSwipeRefresh;
     private RecyclerView mRecyclerView;
     private PointsAdapter mAdapter;
     private FloatingActionButton mButton;
     private FrameLayout mLogin;
     private FrameLayout mEmpty;
-    private FrameLayout mProgress;
+    private View mProgress;
 
     private ConvertPointsTask mTask;
 
@@ -59,11 +61,14 @@ public class MainActivity extends AppCompatActivity implements ConvertPointsTask
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mSwipeRefresh = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mButton = (FloatingActionButton) findViewById(R.id.create_point);
         mLogin = (FrameLayout) findViewById(R.id.login);
         mEmpty = (FrameLayout) findViewById(R.id.empty_message);
-        mProgress = (FrameLayout) findViewById(R.id.progress_bar);
+        mProgress = findViewById(R.id.progress_bar);
+
+        mSwipeRefresh.setOnRefreshListener(() -> refreshList() );
 
         mAdapter = new PointsAdapter(this, new ArrayList<Point>());
         setSwipeListener(mRecyclerView);
@@ -181,10 +186,12 @@ public class MainActivity extends AppCompatActivity implements ConvertPointsTask
 
     public void showProgress() {
         mProgress.setVisibility(View.VISIBLE);
+        mSwipeRefresh.setRefreshing(true);
     }
 
     public void hideProgress() {
         mProgress.setVisibility(View.GONE);
+        mSwipeRefresh.setRefreshing(false);
     }
 
     @Override
