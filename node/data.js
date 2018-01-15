@@ -15,10 +15,6 @@ module.exports = {
             request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
         });
     },
-    
-    // download('https://www.google.com/images/srpr/logo3w.png', 'public/images/google.png', () => {
-    //     console.log('done');
-    // });
 
     /*
      * Authenticate the auth credentials and run the success callback
@@ -299,37 +295,15 @@ module.exports = {
         });
     },
     
+    /*
+     * Get all points and return them as JSON
+     */
     respondWithPoints: function(req, res) {
         module.exports.queryPoints((docs) => {
             if (docs && docs.length > 0 && docs[0].points) {
                 let points = docs[0].points;
                 res.send(points);
-                // let collector = new PointsCollector(points, 
-                //     (result) => {
-                //         // Success!
-                //         if (!res.headersSent) {
-                //             res.send(result);
-                //         }
-                //     }, 
-                //     () => {
-                //         // Failure
-                //         if (!res.headersSent) {
-                //             res.status(500);
-                //             res.send();
-                //         }
-                //     }
-                // );
-                // for (let i=0; i<points.length; i++) {
-                //     let id = points[i].id;
-                //     fs.readFile(points[i].mapUri, (error, data) => {
-                //         collector.addMapData(id, data);
-                //     });
-                //     fs.readFile(points[i].imageUri, (error, data) => {
-                //         collector.addImageData(id, data);
-                //     });
-                // }
             } else {
-                console.log('---ERROR: cannot find points');
                 res.send('{ERROR: cannot find points}');
             }
         });

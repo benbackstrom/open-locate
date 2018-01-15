@@ -231,13 +231,14 @@ app.post('/add', (req, res) => {
  * Get all points in the server's list in json format.
  */
 app.post('/get-points', (req, res) => {
-    console.log("---/get-points");
     data.authenticateAndRun(req, res, (res) => {
-        console.log("---/get-points callback");
         data.respondWithPoints(req, res);
     });
 });
 
+/*
+ * Test authentication with a username and password
+ */
 app.get('/', (req, res) => {
     data.authenticateAndRun(req, res, (res) => {
         res.statusCode = 200;
@@ -246,5 +247,6 @@ app.get('/', (req, res) => {
 });
 
 app.listen(process.env.PORT || 3000, function(){
-    console.log("Express server listening on port %d in %s mode", this.address().port, app.settings.env);
+    console.log("Express server listening on port %d in %s mode", 
+        this.address().port, app.settings.env);
 });
