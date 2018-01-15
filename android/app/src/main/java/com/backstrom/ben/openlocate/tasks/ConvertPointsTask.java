@@ -1,4 +1,4 @@
-package com.backstrom.ben.openlocate;
+package com.backstrom.ben.openlocate.tasks;
 
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
