@@ -1,5 +1,6 @@
 package com.backstrom.ben.openlocate.activities;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -20,6 +21,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -36,6 +39,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
 import com.backstrom.ben.openlocate.R;
 import com.backstrom.ben.openlocate.model.Point;
+import com.backstrom.ben.openlocate.model.SendViewModel;
 import com.backstrom.ben.openlocate.requests.AddPointRequest;
 import com.backstrom.ben.openlocate.requests.AuthRequest;
 import com.google.android.gms.common.ConnectionResult;
@@ -80,14 +84,13 @@ public class SendActivity extends AppCompatActivity implements
     private boolean mConnected = false;
     private boolean mWasPaused = false;
 
+    private SendViewModel mModel;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
     private String mUrl;
-    private LatLng mLatLng;
     private LocationRequest mLocationRequest;
     private LocationListener mLocationListener;
     private File mPhotoFile;
-    private Bitmap mBitmap;
 
     private ImageView mPictureView;
     private ImageView mCloseView;
@@ -105,15 +108,22 @@ public class SendActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send);
 
-        mPictureView = (ImageView) findViewById(R.id.picture_view);
-        mCloseView = (ImageView) findViewById(R.id.close);
-        mNameEdit = (EditText) findViewById(R.id.place_name);
-        mNotesEdit = (EditText) findViewById(R.id.notes);
-        mSendButton = (FloatingActionButton) findViewById(R.id.create_point);
-        mLatLngView = (TextView) findViewById(R.id.lat_lng);
-        mErrorView = (TextView) findViewById(R.id.error);
+        mModel = ViewModelProviders.of(this).get(SendViewModel.class);
+
+        mPictureView = findViewById(R.id.picture_view);
+        mCloseView = findViewById(R.id.close);
+        mNameEdit = findViewById(R.id.place_name);
+        mNotesEdit = findViewById(R.id.notes);
+        mSendButton = findViewById(R.id.create_point);
+        mLatLngView = findViewById(R.id.lat_lng);
+        mErrorView = findViewById(R.id.error);
 
         mUrl = getIntent().getExtras().getString(URL_KEY, null);
+        if (mUrl == null)
+            mUrl = mModel.getUrl();
+        else
+            mModel.setUrl(mUrl);
+
         if (mUrl == null)
             mSendButton.setVisibility(View.GONE);
 
@@ -122,65 +132,55 @@ public class SendActivity extends AppCompatActivity implements
             mPhotoFile = new File(photosDir, "temp.jpg");
         }
 
-        mPictureView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mPhotoFile != null) {
-                    Uri contentUri = FileProvider.getUriForFile(SendActivity.this,
-                            "com.backstrom.ben.openlocate.fileprovider",
-                            mPhotoFile);
+        if (mModel.getPlaceName() != null && mModel.getPlaceName().length() > 0)
+            mNameEdit.setText(mModel.getPlaceName());
 
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, contentUri);
-                    if (intent.resolveActivity(getPackageManager()) != null) {
-                        startActivityForResult(intent, REQUEST_CAMERA_IMAGE);
-                    }
+        if (mModel.getNotes() != null && mModel.getNotes().length() > 0)
+            mNotesEdit.setText(mModel.getNotes());
+
+        if (mModel.getBitmap() != null)
+            mPictureView.setImageBitmap(mModel.getBitmap());
+
+        mPictureView.setOnClickListener((View view) -> {
+            if (mPhotoFile != null) {
+                Uri contentUri = FileProvider.getUriForFile(SendActivity.this,
+                        "com.backstrom.ben.openlocate.fileprovider",
+                        mPhotoFile);
+
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, contentUri);
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivityForResult(intent, REQUEST_CAMERA_IMAGE);
                 }
             }
         });
 
-        mCloseView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-                overridePendingTransition(R.anim.no_animation, R.anim.slide_out_down);
-            }
+        mCloseView.setOnClickListener((View view) -> {
+            finish();
+            overridePendingTransition(R.anim.no_animation, R.anim.slide_out_down);
         });
 
-        mSendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                sendRequest();
-            }
-        });
+        mSendButton.setOnClickListener((View view) ->
+            sendRequest());
         
         mErrorView.setVisibility(View.GONE);
 
-        mLocationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                mLastLocation = location;
-                updateLocation();
-            }
+        mLocationListener = (Location location) -> {
+            mLastLocation = location;
+            updateLocation();
         };
 
-        mAdditionListener = new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Toast.makeText(SendActivity.this, response, Toast.LENGTH_LONG).show();
-                mErrorView.setVisibility(View.GONE);
-                overridePendingTransition(R.anim.no_animation, R.anim.slide_out_down);
-            }
+        mAdditionListener = (String response) -> {
+            Toast.makeText(SendActivity.this, response, Toast.LENGTH_LONG).show();
+            mErrorView.setVisibility(View.GONE);
+            overridePendingTransition(R.anim.no_animation, R.anim.slide_out_down);
         };
 
-        mErrorListener = new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.i(TAG, "-----------error: "+error.toString());
-                error.printStackTrace();
-                mErrorView.setVisibility(View.VISIBLE);
-                mErrorView.setText(error.getMessage());
-            }
+        mErrorListener = (VolleyError error) -> {
+            Log.i(TAG, "-----------error: "+error.toString());
+            error.printStackTrace();
+            mErrorView.setVisibility(View.VISIBLE);
+            mErrorView.setText(error.getMessage());
         };
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -188,6 +188,32 @@ public class SendActivity extends AppCompatActivity implements
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
+
+        mNameEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                mModel.setPlaceName(charSequence.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {}
+        });
+
+        mNotesEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                mModel.setNotes(charSequence.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {}
+        });
     }
 
     @Override
@@ -203,7 +229,8 @@ public class SendActivity extends AppCompatActivity implements
     public void onPause() {
         super.onPause();
         mWasPaused = true;
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, mLocationListener);
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected())
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, mLocationListener);
     }
 
     @Override
@@ -215,7 +242,7 @@ public class SendActivity extends AppCompatActivity implements
 
     @Override
     protected void onStop() {
-        if (mGoogleApiClient != null)
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected())
             mGoogleApiClient.disconnect();
         super.onStop();
     }
@@ -242,9 +269,9 @@ public class SendActivity extends AppCompatActivity implements
                         }
                     }
 
-                    mBitmap = thumbnail;
-                    if (mBitmap != null)
-                        mPictureView.setImageBitmap(mBitmap);
+                    mModel.setBitmap(thumbnail);
+                    if (thumbnail != null)
+                        mPictureView.setImageBitmap(thumbnail);
                     break;
             }
         }
@@ -303,9 +330,9 @@ public class SendActivity extends AppCompatActivity implements
                 null,
                 mNameEdit.getText().toString(),
                 System.currentTimeMillis(),
-                mLatLng,
+                mModel.getLatLng(),
                 mNotesEdit.getText().toString(),
-                mBitmap);
+                mModel.getBitmap());
 
         AddPointRequest additionRequest = new AddPointRequest(addPointUrl,
                 username,
@@ -318,6 +345,7 @@ public class SendActivity extends AppCompatActivity implements
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
+        mModel.clear();
         queue.add(additionRequest);
     }
 
@@ -394,13 +422,15 @@ public class SendActivity extends AppCompatActivity implements
     }
 
     public void updateLocation() {
-        mLatLng = new LatLng(
+        LatLng latLng = new LatLng(
                 mLastLocation.getLatitude(),
                 mLastLocation.getLongitude()
         );
-        String latLngText = mLatLng.latitude+", "+mLatLng.longitude;
+        String latLngText = latLng.latitude+", "+latLng.longitude;
         if (mLatLngView != null)
             mLatLngView.setText(latLngText);
+
+        mModel.setLatLng(latLng);
     }
 
     public boolean isExternalStorageWritable() {

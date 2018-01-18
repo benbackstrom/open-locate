@@ -30,72 +30,85 @@
 
     </FrameLayout>
 
-    <FrameLayout
-        android:id="@+id/image_view_container"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/light_grey"
-        android:layout_below="@+id/header"
-        android:layout_alignParentStart="true">
+        android:layout_below="@+id/header">
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:src="@drawable/ic_photo_camera_black_24dp"/>
-
-        <ImageView
-            android:id="@+id/picture_view"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="200dp"/>
+            android:layout_height="wrap_content">
 
-    </FrameLayout>
+            <FrameLayout
+                android:id="@+id/image_view_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/light_grey"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true">
 
-    <EditText
-        android:id="@+id/place_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/image_view_container"
-        android:layout_margin="10dp"
-        android:inputType="textCapSentences"
-        android:textSize="20sp"
-        android:hint="Place Name"/>
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_photo_camera_black_24dp"/>
 
-    <EditText
-        android:id="@+id/notes"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/place_name"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginBottom="10dp"
-        android:inputType="textCapSentences"
-        android:textSize="20sp"
-        android:hint="Notes"/>
+                <ImageView
+                    android:id="@+id/picture_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"/>
 
-    <TextView
-        android:id="@+id/lat_lng"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/notes"
-        android:layout_marginBottom="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        tools:text="-107.923759, 45.970418"/>
+            </FrameLayout>
 
-    <TextView
-        android:id="@+id/error"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/lat_lng"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginBottom="10dp"
-        android:background="@drawable/error_background"
-        android:padding="10dp"
-        android:text="Error"
-        android:textColor="@color/white"
-        android:textSize="16dp" />
+            <EditText
+                android:id="@+id/place_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/image_view_container"
+                android:layout_margin="10dp"
+                android:inputType="textCapSentences"
+                android:textSize="20sp"
+                android:hint="Place Name"/>
+
+            <EditText
+                android:id="@+id/notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/place_name"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="10dp"
+                android:inputType="textCapSentences"
+                android:textSize="20sp"
+                android:hint="Notes"/>
+
+            <TextView
+                android:id="@+id/lat_lng"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/notes"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                tools:text="-107.923759, 45.970418"/>
+
+            <TextView
+                android:id="@+id/error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/lat_lng"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/error_background"
+                android:padding="10dp"
+                android:text="Error"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+
+        </RelativeLayout>
+
+    </ScrollView>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/create_point"
