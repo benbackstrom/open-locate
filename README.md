@@ -74,5 +74,26 @@ If all is well then you should see the following:
 
 `Express server listening on port 3000 in development mode`
 
+### 6. Register a Username and Password
+
+You will need to set a user in order to access the app remotely. Navigate to the URL of the app + `/register` to enter a username and password. This will only work when no user exists for the app; after that, you will need to go into your remote MongoDB instance and change the username/password.
+
+You're now ready to start saving memento data through the Android app!
+
 ## Getting Started: Android
 
+Download OpenLocate for Android from the [Google Play Store](https://play.google.com/store/apps/details?id=com.backstrom.ben.openlocate). Before doing anything, you will need to log into the server successfully.
+
+Tap the Account button in the toolbar, then enter the URL, username, and password for your instance of the Node.js app. Hit Connect. If you see a 'Success!' message then you will be able to start entering data into the app.
+
+When you create a new memento, the following pieces of data are saved to your Node.js app:
+
+1. The image you included
+2. A static map image showing where the memento was saved
+3. A name for the item
+4. Any notes you may have included
+5. The latitude/longitude of the device where the memento was saved
+
+Want to fork the project and add your own features? You can build the Android application by downloading [Android Studio and the Android Development SDK](https://developer.android.com/studio/index.html). Then, select File -> Open in Android Studio and point to the `android` directory in the OpenLocate project.
+
+Enjoy!
