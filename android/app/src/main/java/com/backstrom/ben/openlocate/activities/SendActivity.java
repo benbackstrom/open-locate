@@ -1,7 +1,6 @@
 package com.backstrom.ben.openlocate.activities;
 
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -14,7 +13,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -43,7 +41,6 @@ import com.backstrom.ben.openlocate.requests.AddPointRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -76,6 +73,7 @@ public class SendActivity extends AppCompatActivity implements
 
     private boolean mConnected = false;
     private boolean mWasPaused = false;
+    private boolean mHasRequestedPermissions = false;
 
     private SendViewModel mModel;
     private GoogleApiClient mGoogleApiClient;
@@ -84,6 +82,7 @@ public class SendActivity extends AppCompatActivity implements
     private LocationRequest mLocationRequest;
     private LocationListener mLocationListener;
     private File mPhotoFile;
+    private AlertDialog mDialog;
 
     private ImageView mPictureView;
     private ImageView mCloseView;
@@ -207,6 +206,13 @@ public class SendActivity extends AppCompatActivity implements
             @Override
             public void afterTextChanged(Editable editable) {}
         });
+
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.permissions_error);
+        builder.setMessage(R.string.permissions_error_message);
+        builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> dialogInterface.dismiss());
+        mDialog = builder.create();
     }
 
     @Override
@@ -294,12 +300,9 @@ public class SendActivity extends AppCompatActivity implements
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     retrieveLocation();
+                    mSendButton.setVisibility(View.VISIBLE);
                 } else {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle(R.string.permissions_error);
-                    builder.setMessage(R.string.permissions_error_message);
-                    builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> dialogInterface.dismiss());
-                    builder.show();
+                    showPermissionsErrorDialog();
                     mSendButton.setVisibility(View.GONE);
                 }
             }
@@ -348,12 +351,16 @@ public class SendActivity extends AppCompatActivity implements
         if (hasCoarseLocation && hasFineLocation) {
             retrieveLocation();
             tryStartLocationUpdates();
-        } else {
+        } else if (!mHasRequestedPermissions){
             ActivityCompat.requestPermissions(this,
                     new String[]{
                             Manifest.permission.ACCESS_FINE_LOCATION
                     },
                     MY_PERMISSIONS_REQUEST_FINE_LOCATION);
+            mHasRequestedPermissions = true;
+        } else {
+            showPermissionsErrorDialog();
+            mSendButton.setVisibility(View.GONE);
         }
     }
 
@@ -416,6 +423,11 @@ public class SendActivity extends AppCompatActivity implements
             mLatLngView.setText(latLngText);
 
         mModel.setLatLng(latLng);
+    }
+
+    private void showPermissionsErrorDialog() {
+        if (!mDialog.isShowing())
+            mDialog.show();
     }
 
     public boolean isExternalStorageWritable() {
