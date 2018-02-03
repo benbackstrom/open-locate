@@ -32,7 +32,6 @@ import android.Manifest;
 import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -41,7 +40,6 @@ import com.backstrom.ben.openlocate.R;
 import com.backstrom.ben.openlocate.model.Point;
 import com.backstrom.ben.openlocate.model.SendViewModel;
 import com.backstrom.ben.openlocate.requests.AddPointRequest;
-import com.backstrom.ben.openlocate.requests.AuthRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -56,12 +54,7 @@ import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.model.LatLng;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 import static com.backstrom.ben.openlocate.requests.AuthRequest.PASSWORD_KEY;
 import static com.backstrom.ben.openlocate.requests.AuthRequest.URL_KEY;
@@ -77,7 +70,7 @@ public class SendActivity extends AppCompatActivity implements
 
     private static final String TAG = SendActivity.class.getSimpleName();
 
-    private static final int MY_PERMISSIONS_REQUEST_COARSE_LOCATION = 127;
+    private static final int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 127;
     private static final int REQUEST_CHECK_LOCATION_SETTINGS = 128;
     private static final int REQUEST_CAMERA_IMAGE = 129;
 
@@ -297,7 +290,7 @@ public class SendActivity extends AppCompatActivity implements
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_COARSE_LOCATION: {
+            case MY_PERMISSIONS_REQUEST_FINE_LOCATION: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     retrieveLocation();
@@ -305,12 +298,7 @@ public class SendActivity extends AppCompatActivity implements
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle(R.string.permissions_error);
                     builder.setMessage(R.string.permissions_error_message);
-                    builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.dismiss();
-                        }
-                    });
+                    builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> dialogInterface.dismiss());
                     builder.show();
                     mSendButton.setVisibility(View.GONE);
                 }
@@ -363,9 +351,9 @@ public class SendActivity extends AppCompatActivity implements
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{
-                            Manifest.permission.ACCESS_COARSE_LOCATION
+                            Manifest.permission.ACCESS_FINE_LOCATION
                     },
-                    MY_PERMISSIONS_REQUEST_COARSE_LOCATION);
+                    MY_PERMISSIONS_REQUEST_FINE_LOCATION);
         }
     }
 
@@ -392,23 +380,20 @@ public class SendActivity extends AppCompatActivity implements
         PendingResult<LocationSettingsResult> result =
                 LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient,
                         builder.build());
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(@NonNull LocationSettingsResult settingsResult) {
-                final Status status = settingsResult.getStatus();
-                final LocationSettingsStates states = settingsResult.getLocationSettingsStates();
-                switch (status.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        startLocationUpdates();
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        try {
-                            status.startResolutionForResult(SendActivity.this, REQUEST_CHECK_LOCATION_SETTINGS);
-                        } catch (IntentSender.SendIntentException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                }
+        result.setResultCallback(settingsResult -> {
+            final Status status = settingsResult.getStatus();
+            final LocationSettingsStates states = settingsResult.getLocationSettingsStates();
+            switch (status.getStatusCode()) {
+                case LocationSettingsStatusCodes.SUCCESS:
+                    startLocationUpdates();
+                    break;
+                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                    try {
+                        status.startResolutionForResult(SendActivity.this, REQUEST_CHECK_LOCATION_SETTINGS);
+                    } catch (IntentSender.SendIntentException e) {
+                        e.printStackTrace();
+                    }
+                    break;
             }
         });
     }
