@@ -246,7 +246,11 @@ app.get('/', (req, res) => {
     });
 });
 
-app.listen(process.env.PORT || 3000, function(){
+app.listen(process.env.PORT || 3000, () => {
+    let images = './public/images';
+    if (!fs.existsSync(images))
+        fs.mkdirSync(images);
+
     console.log("Express server listening on port %d in %s mode", 
         this.address().port, app.settings.env);
 });
