@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.backstrom.ben.openlocate.R;
 import com.backstrom.ben.openlocate.activities.ImageZoomActivity;
+import com.backstrom.ben.openlocate.activities.MapActivity;
 import com.backstrom.ben.openlocate.model.Point;
 import com.backstrom.ben.openlocate.model.PointViewModel;
 import com.backstrom.ben.openlocate.util.DateFormatUtil;
@@ -75,6 +76,17 @@ public class PointFragment extends Fragment {
                  mMapView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                  loadImages();
              }
+        });
+
+        mMapView.setOnClickListener(v -> {
+            Bundle bundle = new Bundle();
+            bundle.putString(Point.NAME_KEY, mPoint.name);
+            bundle.putDouble(Point.LAT_KEY, mPoint.latLng.latitude);
+            bundle.putDouble(Point.LNG_KEY, mPoint.latLng.longitude);
+
+            Intent intent = new Intent(getActivity(), MapActivity.class);
+            intent.putExtras(bundle);
+            getContext().startActivity(intent);
         });
 
         String date = DateFormatUtil.getFormattedDate(mPoint.timestamp);
