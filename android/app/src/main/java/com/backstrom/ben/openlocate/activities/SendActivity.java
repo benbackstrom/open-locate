@@ -311,7 +311,7 @@ public class SendActivity extends AppCompatActivity implements
 
     private void sendRequest() {
         RequestQueue queue = Volley.newRequestQueue(this);
-        final String addPointUrl = mUrl + "/add";
+        final String addPointUrl = mUrl + "/point";
         
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         final String username = prefs.getString(USERNAME_KEY, null);

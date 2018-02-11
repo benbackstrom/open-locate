@@ -1,17 +1,11 @@
 package com.backstrom.ben.openlocate.requests;
 
-import android.util.Base64;
 import android.util.Log;
 
 import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
 import com.android.volley.Response;
-import com.android.volley.toolbox.Volley;
 import com.backstrom.ben.openlocate.model.Point;
 import com.backstrom.ben.openlocate.util.BitmapUtils;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by benba on 4/18/2017.
@@ -29,7 +23,7 @@ public class AddPointRequest extends AuthRequest {
                            Response.Listener<String> listener,
                            Response.ErrorListener errorListener,
                            Point point) {
-        super(Request.Method.POST, url, username, password, listener, errorListener);
+        super(Method.POST, url, username, password, listener, errorListener);
         mPoint = point;
         if (mPoint.attachment != null)
             mAttachment = BitmapUtils.bitmapToString(mPoint.attachment);

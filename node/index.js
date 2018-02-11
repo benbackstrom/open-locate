@@ -194,7 +194,7 @@ app.get('/login', (req, res) => {
 /*
  * Add a point to the database.
  */
-app.post('/add', (req, res) => {
+app.post('/point', (req, res) => {
     data.authenticateAndRun(req, res, (res) => {
         let imageData = req.body.attachment;
         let imageUri = data.createImageFilename(req.body.timestamp);
