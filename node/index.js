@@ -226,7 +226,7 @@ app.post('/point', (req, res) => {
 /*
  * Get all points in the server's list in json format.
  */
-app.post('/get-points', (req, res) => {
+app.get('/points', (req, res) => {
     data.authenticateAndRun(req, res, (res) => {
         data.respondWithPoints(req, res);
     });

@@ -55,9 +55,9 @@ public class PointsListViewModel extends ViewModel implements ConvertPointsTask.
         String username = prefs.getString(USERNAME_KEY, null);
         String password = prefs.getString(PASSWORD_KEY, null);
 
-        String url = baseUrl + "/get-points";
+        String url = baseUrl + "/points";
 
-        AuthRequest request = new AuthRequest(Request.Method.POST,
+        AuthRequest request = new AuthRequest(Request.Method.GET,
                 url,
                 username,
                 password,
