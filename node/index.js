@@ -112,11 +112,9 @@ DRLK7r5jAAkbmOMhRwMD25NFFFfPL3VaOx6kq1STvKTb9T//2Q==\
 
     data.saveImageToDisk(imageUri, imageData, () => {
         data.requestMapImage(point.latitude, point.longitude, mapUri, () => {
-            // initializePointsList(point, () => {
-                data.addPointToDatabase(point, () => {
-                    console.log('---DONE');
-                });
-            // });
+            data.addPointToDatabase(point, () => {
+                console.log('---DONE');
+            });
         });
     });
 });
@@ -140,10 +138,10 @@ app.get('/test-get-points', (req, res) => {
 /*
  * Remove a point with a given id in the database.
  */
-app.post('/remove-point', (req, res) => {
+app.delete('/point/:id', (req, res) => {
     data.authenticateAndRun(req, res, (res) => {
-        if (req.body.id) {
-            data.removePointAtId(req.body.id, () => {
+        if (req.params.id) {
+            data.removePointAtId(req.params.id, () => {
                 res.send('OK!');
             });
         }
@@ -217,11 +215,9 @@ app.post('/add', (req, res) => {
 
         data.saveImageToDisk(imageUri, imageData, () => {
             data.requestMapImage(point.latitude, point.longitude, mapUri, () => {
-                // initializePointsList(point, () => {
-                    data.addPointToDatabase(point, () => {
-                        console.log('---DONE');
-                    });
-                // });
+                data.addPointToDatabase(point, () => {
+                    
+                });
             });
         });
     });
@@ -246,11 +242,12 @@ app.get('/', (req, res) => {
     });
 });
 
-app.listen(process.env.PORT || 3000, () => {
+let port = process.env.PORT || 3000;
+app.listen(port, () => {
     let images = './public/images';
     if (!fs.existsSync(images))
         fs.mkdirSync(images);
 
     console.log("Express server listening on port %d in %s mode", 
-        this.address().port, app.settings.env);
+        port, app.settings.env);
 });

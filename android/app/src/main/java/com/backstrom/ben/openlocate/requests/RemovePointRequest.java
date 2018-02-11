@@ -18,12 +18,7 @@ public class RemovePointRequest extends AuthRequest {
                               Response.Listener<String> listener,
                               Response.ErrorListener errorListener,
                               Point point) {
-        super(Request.Method.POST, url, username, password, listener, errorListener);
+        super(Method.DELETE, url, username, password, listener, errorListener);
         mPoint = point;
-    }
-
-    @Override
-    public byte[] getBody() throws AuthFailureError {
-        return (Point.ID + "=" + mPoint.id).getBytes();
     }
 }

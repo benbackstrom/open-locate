@@ -329,7 +329,8 @@ module.exports = {
     removeImageAtId: function(id) {
         let uri = module.exports.createImageFilename(id);
         fs.unlink(uri, (err) => {
-            console.log(err);
+            if (err != null)
+                console.log(err);
         });
     },
     
@@ -339,7 +340,8 @@ module.exports = {
     removeMapAtId: function(id) {
         let uri = module.exports.createMapFilename(id);
         fs.unlink(uri, (err) => {
-            console.log(err);
+            if (err != null)
+                console.log(err);
         });
     }
 

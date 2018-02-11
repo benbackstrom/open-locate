@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements ConvertPointsTask
         String username = prefs.getString(USERNAME_KEY, null);
         String password = prefs.getString(PASSWORD_KEY, null);
 
-        String url = baseUrl + "/remove-point";
+        String url = baseUrl + "/point/" + toRemove.id;
 
         RequestQueue queue = Volley.newRequestQueue(this);
 
