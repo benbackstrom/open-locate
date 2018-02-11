@@ -59,22 +59,16 @@ public class LoginActivity extends AppCompatActivity {
 
         mErrorView.setVisibility(View.GONE);
 
-        mCloseView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-                overridePendingTransition(R.anim.no_animation, R.anim.slide_out_right);
-            }
+        mCloseView.setOnClickListener(view -> {
+            finish();
+            overridePendingTransition(R.anim.no_animation, R.anim.slide_out_right);
         });
 
-        mConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String url = mUrlView.getText().toString();
-                String username = mUserView.getText().toString();
-                String password = mPasswordView.getText().toString();
-                startRequest(url, username, password);
-            }
+        mConnect.setOnClickListener(view -> {
+            String url = mUrlView.getText().toString();
+            String username = mUserView.getText().toString();
+            String password = mPasswordView.getText().toString();
+            startRequest(url, username, password);
         });
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -94,34 +88,28 @@ public class LoginActivity extends AppCompatActivity {
 
         AuthRequest stringRequest = new AuthRequest(Request.Method.GET, loginUrl,
                 username, password,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        mErrorView.setVisibility(View.GONE);
-                        Log.i(TAG, "Response is: "+ response);
-                        if (response.equals("Access granted")) {
-                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
-                            SharedPreferences.Editor editor = prefs.edit();
-                            editor.putString(URL_KEY, url);
-                            editor.putString(USERNAME_KEY, username);
-                            editor.putString(PASSWORD_KEY, password);
-                            editor.apply();
+                response -> {
+                    mErrorView.setVisibility(View.GONE);
+                    Log.i(TAG, "Response is: "+ response);
+                    if (response.equals("Access granted")) {
+                        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.putString(URL_KEY, url);
+                        editor.putString(USERNAME_KEY, username);
+                        editor.putString(PASSWORD_KEY, password);
+                        editor.apply();
 
-                            Toast.makeText(LoginActivity.this,
-                                    getString(R.string.success),
-                                    Toast.LENGTH_LONG)
-                                    .show();
-                            finish();
-                            overridePendingTransition(R.anim.no_animation, R.anim.slide_out_right);
-                        }
+                        Toast.makeText(LoginActivity.this,
+                                getString(R.string.success),
+                                Toast.LENGTH_LONG)
+                                .show();
+                        finish();
+                        overridePendingTransition(R.anim.no_animation, R.anim.slide_out_right);
                     }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.i(TAG, "That didn't work!");
-                        mErrorView.setVisibility(View.VISIBLE);
-                        mErrorView.setText(error.getLocalizedMessage());
-                    }
+                }, error -> {
+                    Log.i(TAG, "That didn't work!");
+                    mErrorView.setVisibility(View.VISIBLE);
+                    mErrorView.setText(error.getLocalizedMessage());
                 });
 
         queue.add(stringRequest);
