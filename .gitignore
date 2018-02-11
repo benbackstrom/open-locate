@@ -1,2 +1,4 @@
 
 android/app/src/main/res/values/strings_secret\.xml
+
+android/app/release/output\.json
