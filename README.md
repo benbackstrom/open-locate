@@ -96,4 +96,13 @@ When you create a new memento, the following pieces of data are saved to your No
 
 Want to fork the project and add your own features? You can build the Android application by downloading [Android Studio and the Android Development SDK](https://developer.android.com/studio/index.html). Then, select File -> Open in Android Studio and point to the `android` directory in the OpenLocate project.
 
+You will need to create an API key for the [Google Maps API](https://developers.google.com/maps/documentation/android-api/signup) in order to . Create a project or choose an existing one, then create a key for that project and save off the key. This should be kept private. Therefore, create a file called `strings_secret` in your Android project in the `res/values` folder. Reference the key in this file as follows:
+
+```
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="maps_api_key">YOUR KEY HERE</string>
+</resources>
+```
+
 Enjoy!
