@@ -22,7 +22,7 @@
     "body-parser": "^1.17.1",
     "express": "^4.15.2",
     "fs": "0.0.1-security",
-    "mongodb": "^2.2.24",
+    "mongodb": "^4.4.1",
     "request": "^2.81.0"
   }
 }
